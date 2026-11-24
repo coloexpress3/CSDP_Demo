@@ -20,6 +20,7 @@ on:
         default: '0'
 
 env:
+ TESTS_TO_RUN_MTBX: testsToRun.mtbx
  PROPS_TXT: FT-test-props.txt
  RES_XML: FT-test-results.xml
  LAUNCHER_EXE: FTToolsLauncher.exe
