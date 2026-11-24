@@ -19,7 +19,7 @@ jobs:
         uses: opentext/sdp-github-actions-integration@v26.4.0
         with:
           octaneUrl: 'https://almoctane-apj.saas.microfocus.com'
-          octaneSharedSpace: 299044
+          octaneSharedSpace: 299004
           octaneWorkspace: 3001
           octaneClientId: ${{secrets.SDP_CLIENT_ID}}
           octaneClientSecret: ${{secrets.SDP_CLIENT_SECRET}}
