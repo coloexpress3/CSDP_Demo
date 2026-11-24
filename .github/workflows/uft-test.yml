@@ -55,7 +55,7 @@ jobs:
        id: convert_tests
        shell: powershell
        run: |
-         $output = npx @opentext/sdp-sdm-tests-to-run-conversion --framework="uft" --testsToRun="${{github.event.inputs.testsToRun }}" --logLevel=0
+         $output = npx @opentext/sdp-sdm-tests-to-run-conversion --framework="uft" --testsToRun="${{ github.event.inputs.testsToRun }}" --logLevel=0
          Write-Host "Original Node output: $output"
          $output = $output -replace '%20', ' '
          Write-Host "Decoded Node output: $output"
