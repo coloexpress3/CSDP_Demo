@@ -21,9 +21,9 @@ jobs:
           octaneUrl: 'https://almoctane-apj.saas.microfocus.com'
           octaneSharedSpace: 500
           octaneWorkspace: 3001
-          octaneClientId: GitHubActions_7ypjoxvp8n9ket5yxky03z3md
-          octaneClientSecret: R?-9(Xd11Z8eEc3E?tN4B
-          githubToken: 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
+          octaneClientId: ${{secrets.SDP_CLIENT_ID}}
+          octaneClientSecret: ${{secrets.SDP_CLIENT_SECRET}}
+          githubToken: ${{secrets.GITHUB_TOKEN}}
           serverBaseUrl: 'https://github.com/coloexpress3/CSDP_Demo'
           pipelineNamePattern: '${workflow_name}'
           unitTestResultsGlobPattern: "**/*.xml"
