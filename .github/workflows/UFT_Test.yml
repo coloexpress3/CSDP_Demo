@@ -1,0 +1,14 @@
+name: UFT AOS Test
+on:
+  workflow_dispatch:
+
+env:
+ PROPS_TXT: FT-test-props.txt
+ RES_XML: FT-test-results.xml
+ LAUNCHER_EXE: FTToolsLauncher.exe
+ LAUNCHER_URL: https://github.com/MicroFocus/ADM-FTToolsLauncher/releases/download/v24.2.0/FTToolsLauncher_net48.exe
+ UFT_TEST_PATH: 'C:\Users\Supareak.i\Documents\Functional Testing\DemoGUI'
+
+jobs:
+ run-tests:
+   runs-on: [self-hosted, ft-runner]
