@@ -12,3 +12,129 @@ env:
 jobs:
  run-tests:
    runs-on: [self-hosted, ft-runner]
+
+   steps:
+     - name: Show runner information
+       shell: powershell
+       run: |
+         Write-Host "Runner: $env:COMPUTERNAME"
+         Write-Host "UFT Test: $env:UFT_TEST_PATH"
+       
+         if (Test-Path $env:UFT_TEST_PATH) {
+           Write-Host "AOS UFT test found."
+         } else {
+           Write-Error "AOS UFT test NOT found at $env:UFT_TEST_PATH"
+         exit 1
+         }
+         
+     - name: Set up Node.js
+       uses: actions/setup-node@v4
+       with:
+         node-version: '22'
+         
+     - name: Convert testsToRun parameter
+       if: ${{ github.event.inputs.testsToRun != '' }}
+       id: convert_tests
+       shell: powershell
+       run: |
+         $output = npx @opentext/sdp-sdm-tests-to-run-conversion --framework="uft" --testsToRun="${{github.event.inputs.testsToRun }}" --logLevel=0
+         Write-Host "Original Node output: $output"
+         $output = $output -replace '%20', ' '
+         Write-Host "Decoded Node output: $output"
+         $output | Out-File -FilePath $env:TESTS_TO_RUN_MTBX -Encoding utf8
+         
+     - name: Create UFT properties file
+       if: ${{ github.event.inputs.testsToRun != '' }}
+       shell: powershell
+       run: |
+         $mtbxPath = Join-Path $pwd $env:TESTS_TO_RUN_MTBX
+         $escapedMtbxPath = $mtbxPath.Replace('\', '\\')
+         $content = @"
+         runType=FileSystem
+         resultsFilename=$env:RES_XML
+         Test1=$escapedMtbxPath
+         resultTestNameOnly=true
+         resultUnifiedTestClassname=true
+         "@
+         
+         $content | Out-File -FilePath $env:PROPS_TXT -Encoding utf8
+         
+         Write-Host "Created UFT properties file:"
+         Get-Content $env:PROPS_TXT
+         
+     - name: Download Functional Testing launcher
+       if: ${{ github.event.inputs.testsToRun != '' }}
+       shell: powershell
+       run: |
+         if (Test-Path $env:LAUNCHER_EXE) {
+           Write-Host "FTToolsLauncher.exe already exists."
+         } else {
+           Write-Host "Downloading FTToolsLauncher.exe..."
+           Invoke-WebRequest -Uri $env:LAUNCHER_URL -OutFile $env:LAUNCHER_EXE
+         }
+         
+     - name: Run AOS UFT test
+       if: ${{ github.event.inputs.testsToRun != '' }}
+       id: run-tests
+       shell: powershell
+       run: |
+         $process = Start-Process -FilePath "$env:LAUNCHER_EXE" `
+           -ArgumentList "-paramfile $env:PROPS_TXT" `
+           -NoNewWindow -PassThru
+           
+         $process | Wait-Process
+         
+         Write-Host "FTToolsLauncher exit code: $($process.ExitCode)"
+         
+         if ($process.ExitCode -ne 0) {
+           exit $process.ExitCode
+         }
+         
+     - name: Archive UFT test results
+       if: ${{ always() && github.event.inputs.testsToRun != '' }}
+       uses: actions/upload-artifact@v4
+       with:
+         name: uft-aos-test-results
+         path: FT-test-results.xml
+       continue-on-error: true
+
+     - name: Find latest UFT HTML report
+       if: ${{ always() && github.event.inputs.testsToRun != '' }}
+       shell: powershell
+       run: |
+         $report = Get-ChildItem "C:\Users\demo\Documents\Functional Testing\AOS" -Directory |
+           Where-Object { $_.Name -match '^Report\d+$' } |
+           Sort-Object LastWriteTime -Descending |
+           Select-Object -First 1
+           
+         if ($report) {
+           Write-Host "Latest UFT report: $($report.FullName)"
+           "UFT_REPORT_PATH=$($report.FullName)" >> $env:GITHUB_ENV
+         } else {
+           Write-Error "No UFT Report folder found."
+           exit 1
+         }
+
+     - name: Archive full UFT HTML report
+       if: ${{ always() && github.event.inputs.testsToRun != '' }}
+       shell: powershell
+       run: |
+          if ($env:UFT_REPORT_PATH -and (Test-Path $env:UFT_REPORT_PATH)) {
+            Compress-Archive `
+           -Path "$env:UFT_REPORT_PATH\*" `
+           -DestinationPath "UFT-AOS-HTML-Report.zip" `
+           -Force
+           
+            Write-Host "UFT HTML report packaged successfully."
+          } else {
+            Write-Error "UFT report folder not found."
+            exit 1
+          }
+
+     - name: Upload full UFT HTML report
+       if: ${{ always() && github.event.inputs.testsToRun != '' }}
+       uses: actions/upload-artifact@v4
+       with:
+         name: uft-aos-html-report
+         path: UFT-AOS-HTML-Report.zip
+         if-no-files-found: err
