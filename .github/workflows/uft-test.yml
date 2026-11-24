@@ -119,7 +119,7 @@ jobs:
        if: ${{ always() && github.event.inputs.testsToRun != '' }}
        shell: powershell
        run: |
-         $report = Get-ChildItem "C:\Users\demo\Documents\Functional Testing\AOS" -Directory |
+         $report = Get-ChildItem "C:\Users\Supareak.i\Documents\Functional Testing\DemoGUI" -Directory |
            Where-Object { $_.Name -match '^Report\d+$' } |
            Sort-Object LastWriteTime -Descending |
            Select-Object -First 1
