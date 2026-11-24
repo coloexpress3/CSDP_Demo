@@ -1,6 +1,23 @@
 name: UFT AOS Test
 on:
   workflow_dispatch:
+    inputs:
+      testsToRun:
+        description: 'Tests to run (from OpenText SDP)'
+        required: false
+        default: ''
+      suiteRunId:
+        description: 'Suite Run Id (from OpenText SDP)'
+        required: true
+        default: '0'
+      executionId:
+        description: 'Execution Id (from OpenText SDP)'
+        required: true
+        default: '0'
+      suiteId:
+        description: 'Suite Id (from OpenText SDP)'
+        required: true
+        default: '0'
 
 env:
  PROPS_TXT: FT-test-props.txt
