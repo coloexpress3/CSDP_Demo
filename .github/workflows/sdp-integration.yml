@@ -14,6 +14,7 @@ permissions:
 jobs:
   sdp_integration_job:
     runs-on: ubuntu-latest
+    name: SDP-Integration#${{github.event.action}}#${{github.event.workflow_run.id}}
     steps:
       - name: Publish to OpenText SDP
         uses: opentext/sdp-github-actions-integration@v26.4.0
